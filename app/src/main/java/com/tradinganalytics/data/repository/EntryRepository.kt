@@ -3,6 +3,7 @@ package com.tradinganalytics.data.repository
 import com.tradinganalytics.data.database.dao.EntryDao
 import com.tradinganalytics.data.database.entities.EntryEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
