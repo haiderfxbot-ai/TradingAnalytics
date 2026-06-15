@@ -1,5 +1,7 @@
 package com.tradinganalytics.ui.reports
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
