@@ -276,11 +276,12 @@ private fun FilterChipsRow(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
-                border = if (selectedFilter == filter) {
-                    BorderStroke(1.dp, DarkThemeColors.Primary.copy(alpha = 0.5f))
-                } else {
-                    BorderStroke(1.dp, DarkThemeColors.GlassBorder)
-                },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedFilter == filter,
+                    borderColor = DarkThemeColors.GlassBorder,
+                    selectedBorderColor = DarkThemeColors.Primary.copy(alpha = 0.5f)
+                ),
                 shape = RoundedCornerShape(12.dp)
             )
         }
