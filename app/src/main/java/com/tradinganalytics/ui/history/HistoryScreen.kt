@@ -2,12 +2,16 @@ package com.tradinganalytics.ui.history
 
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 
+
+
+
+import androidx.compose.foundation.BorderStroke
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
@@ -434,3 +438,4 @@ private fun Date.toRelativeTime(): String {
         else -> "${days / 365}y ago"
     }
 }
+
