@@ -411,7 +411,7 @@ private fun SummaryCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(gradient.copy(alpha = 0.12f), RoundedCornerShape(16.dp))
+                .background(gradient, RoundedCornerShape(16.dp), alpha = 0.12f)
                 .padding(14.dp),
             contentAlignment = Alignment.Center
         ) {
