@@ -1,5 +1,7 @@
 package com.tradinganalytics.ui.history
 
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -8,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -225,12 +228,11 @@ private fun FilterBar(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = currentFilter == filter,
-                    borderColor = DarkThemeColors.GlassBorder,
-                    selectedBorderColor = DarkThemeColors.Primary.copy(alpha = 0.5f)
-                )
+                border = if (currentFilter == filter) {
+                    BorderStroke(1.dp, DarkThemeColors.Primary.copy(alpha = 0.5f))
+                } else {
+                    BorderStroke(1.dp, DarkThemeColors.GlassBorder)
+                }
             )
         }
     }
