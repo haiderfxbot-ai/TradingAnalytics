@@ -10,6 +10,9 @@ import java.util.Date
 
 @Dao
 interface EntryDao {
+    @Query("SELECT * FROM entries")
+    fun getAll(): Flow<List<EntryEntity>>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: EntryEntity): Long
