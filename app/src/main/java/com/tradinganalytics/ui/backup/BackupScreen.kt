@@ -50,6 +50,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -197,7 +199,6 @@ fun BackupScreen(
         if (backup != null) {
             AlertDialog(
                 onDismissRequest = { onEvent(BackupEvent.DismissDeleteConfirm) },
-                containerColor = DarkThemeColors.SurfaceDark,
                 shape = RoundedCornerShape(20.dp),
                 title = {
                     Text(
@@ -354,7 +355,6 @@ private fun ScheduleSelector(selected: String, onSelect: (String) -> Unit) {
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = DarkThemeColors.SurfaceDark
         ) {
             options.forEach { (value, label) ->
                 DropdownMenuItem(
