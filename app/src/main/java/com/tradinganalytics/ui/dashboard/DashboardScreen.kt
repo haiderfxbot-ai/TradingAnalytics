@@ -398,7 +398,7 @@ private fun GoalProgressCard(
     isCompleted: Boolean
 ) {
     val animProgress by animateFloatAsState(
-        targetValue = (percentage / 100f).coerceIn(0f, 1f),
+        targetValue = (percentage / 100f).coerceIn(0.0, 1.0),
         animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
     )
 
