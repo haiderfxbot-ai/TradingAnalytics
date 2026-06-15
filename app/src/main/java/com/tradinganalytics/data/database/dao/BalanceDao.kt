@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BalanceDao {
+    @Query("SELECT * FROM balances")
+    fun getAll(): Flow<List<BalanceEntity>>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(balance: BalanceEntity): Long
