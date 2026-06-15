@@ -1,202 +1,146 @@
-package com.tradinganalytics.ui.patternlib
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.material.ExperimentalMaterialApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 
-@file:OptIn(ExperimentalMaterial3Api::class)
+package com.tradinganalytics.ui.history
 
-
-
-
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tradinganalytics.core.theme.DarkThemeColors
-import com.tradinganalytics.patterns.library.PatternDefinition
-import com.tradinganalytics.ui.components.SkeletonCard
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun PatternLibScreen(
-    uiState: PatternLibUiState,
-    onEvent: (PatternLibEvent) -> Unit,
-    onPatternClick: (String) -> Unit
+fun HistoryScreen(
+    uiState: HistoryUiState,
+    onFilterChange: (HistoryFilter) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onLoadMore: () -> Unit
 ) {
     val pullRefreshState = rememberPullRefreshState(
         refreshing = uiState.isRefreshing,
-        onRefresh = { onEvent(PatternLibEvent.Refresh) }
+        onRefresh = onRefresh
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Pattern Library",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { onEvent(PatternLibEvent.ToggleViewMode) }) {
-                        Icon(
-                            imageVector = if (uiState.viewMode == PatternViewMode.GRID)
-                                Icons.Default.ViewList else Icons.Default.GridView,
-                            contentDescription = "Toggle view",
-                            tint = DarkThemeColors.OnSurfaceVariant
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { },
-                containerColor = DarkThemeColors.Primary,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Outlined.AutoAwesome, contentDescription = "Quick Analysis")
-            }
-        },
-        containerColor = Color.Transparent
-    ) { padding ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        SearchBar(
+            query = uiState.searchQuery,
+            onQueryChange = onSearchQueryChange
+        )
+
+        FilterBar(
+            currentFilter = uiState.filter,
+            onFilterChange = onFilterChange
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .pullRefresh(pullRefreshState)
         ) {
-            if (uiState.isLoading) {
-                PatternLibSkeleton()
+            if (uiState.isLoading && !uiState.isRefreshing) {
+                HistorySkeleton()
+            } else if (uiState.entries.isEmpty()) {
+                EmptyState()
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    SearchBar(
-                        query = uiState.searchQuery,
-                        onQueryChange = { onEvent(PatternLibEvent.OnSearchQueryChange(it)) }
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    FilterChipsRow(
-                        selectedFilter = uiState.selectedFilter,
-                        onFilterSelect = { onEvent(PatternLibEvent.OnFilterSelect(it)) }
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "${uiState.filteredPatterns.size} patterns",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = DarkThemeColors.OnSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (uiState.filteredPatterns.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No patterns found",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = DarkThemeColors.OnSurfaceVariant
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = uiState.entries,
+                        key = { it.id }
+                    ) { entry ->
+                        HistoryEntryItem(
+                            entry = entry,
+                            modifier = Modifier.animateItemPlacement(
+                                animationSpec = tween(300)
                             )
-                        }
-                    } else if (uiState.viewMode == PatternViewMode.GRID) {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(
-                                items = uiState.filteredPatterns,
-                                key = { it.patternId }
-                            ) { pattern ->
-                                PatternGridCard(
-                                    pattern = pattern,
-                                    isFavorite = uiState.favoriteIds.contains(pattern.patternId),
-                                    onClick = { onPatternClick(pattern.patternId) },
-                                    onFavoriteToggle = { onEvent(PatternLibEvent.ToggleFavorite(pattern.patternId)) }
+                        )
+                    }
+
+                    if (uiState.hasMore) {
+                        item {
+                            LaunchedEffect(Unit) {
+                                onLoadMore()
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Loading more...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(
-                                items = uiState.filteredPatterns,
-                                key = { it.patternId }
-                            ) { pattern ->
-                                PatternListItem(
-                                    pattern = pattern,
-                                    isFavorite = uiState.favoriteIds.contains(pattern.patternId),
-                                    onClick = { onPatternClick(pattern.patternId) },
-                                    onFavoriteToggle = { onEvent(PatternLibEvent.ToggleFavorite(pattern.patternId)) }
-                                )
-                            }
-                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
@@ -205,8 +149,8 @@ fun PatternLibScreen(
                 refreshing = uiState.isRefreshing,
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
-                backgroundColor = DarkThemeColors.SurfaceDark,
-                contentColor = DarkThemeColors.Primary
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -217,315 +161,275 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         placeholder = {
-            Text("Search patterns...", color = DarkThemeColors.OnSurfaceVariant)
+            Text(
+                text = "Search entries...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = DarkThemeColors.OnSurfaceVariant
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         trailingIcon = {
-            if (query.isNotEmpty()) {
+            if (query.isNotBlank()) {
                 IconButton(onClick = { onQueryChange("") }) {
                     Icon(
-                        imageVector = Icons.Default.Refresh,
+                        imageVector = Icons.Default.Clear,
                         contentDescription = "Clear",
-                        tint = DarkThemeColors.OnSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = DarkThemeColors.Primary.copy(alpha = 0.5f),
             unfocusedBorderColor = DarkThemeColors.GlassBorder,
-            focusedContainerColor = DarkThemeColors.SurfaceVariant,
-            unfocusedContainerColor = DarkThemeColors.SurfaceVariant,
-            cursorColor = DarkThemeColors.Primary
+            focusedContainerColor = DarkThemeColors.GlassBackground,
+            unfocusedContainerColor = DarkThemeColors.GlassBackground
         ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp)
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { /* search is live */ })
     )
 }
 
 @Composable
-private fun FilterChipsRow(
-    selectedFilter: PatternFilter,
-    onFilterSelect: (PatternFilter) -> Unit
+private fun FilterBar(
+    currentFilter: HistoryFilter,
+    onFilterChange: (HistoryFilter) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        PatternFilter.entries.forEach { filter ->
+        HistoryFilter.entries.forEach { filter ->
             FilterChip(
-                selected = selectedFilter == filter,
-                onClick = { onFilterSelect(filter) },
+                selected = currentFilter == filter,
+                onClick = { onFilterChange(filter) },
                 label = {
                     Text(
                         text = filter.displayName,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (selectedFilter == filter) FontWeight.SemiBold else FontWeight.Normal
+                        style = MaterialTheme.typography.labelLarge
                     )
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
-                border = if (selectedFilter == filter) {
+                border = if (currentFilter == filter) {
                     BorderStroke(1.dp, DarkThemeColors.Primary.copy(alpha = 0.5f))
                 } else {
                     BorderStroke(1.dp, DarkThemeColors.GlassBorder)
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun PatternGridCard(
-    pattern: PatternDefinition,
-    isFavorite: Boolean,
-    onClick: () -> Unit,
-    onFavoriteToggle: () -> Unit
-) {
-    val riskColor = when (pattern.riskRating.lowercase()) {
-        "low" -> DarkThemeColors.ChartGreen
-        "medium" -> DarkThemeColors.ChartYellow
-        "high" -> DarkThemeColors.ChartOrange
-        "very high" -> DarkThemeColors.ChartRed
-        else -> DarkThemeColors.OnSurfaceVariant
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        DarkThemeColors.GlassBackground,
-                        DarkThemeColors.GlassHighlight
-                    )
-                )
-            )
-            .border(
-                width = 0.5.dp,
-                color = DarkThemeColors.GlassBorder,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(12.dp)
-    ) {
-        Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                CategoryBadge(category = pattern.category)
-                IconButton(
-                    onClick = onFavoriteToggle,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = if (isFavorite) "Remove favorite" else "Add favorite",
-                        tint = if (isFavorite) DarkThemeColors.ChartRed else DarkThemeColors.OnSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = pattern.name,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = DarkThemeColors.OnSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
             )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(riskColor)
-                )
-                Text(
-                    text = pattern.riskRating,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = riskColor,
-                    fontWeight = FontWeight.Medium
-                )
-            }
         }
     }
 }
 
 @Composable
-private fun PatternListItem(
-    pattern: PatternDefinition,
-    isFavorite: Boolean,
-    onClick: () -> Unit,
-    onFavoriteToggle: () -> Unit
+private fun HistoryEntryItem(
+    entry: HistoryEntryUi,
+    modifier: Modifier = Modifier
 ) {
-    val riskColor = when (pattern.riskRating.lowercase()) {
-        "low" -> DarkThemeColors.ChartGreen
-        "medium" -> DarkThemeColors.ChartYellow
-        "high" -> DarkThemeColors.ChartOrange
-        "very high" -> DarkThemeColors.ChartRed
-        else -> DarkThemeColors.OnSurfaceVariant
-    }
+    var showDetails by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
+    Card(
+        onClick = { showDetails = !showDetails },
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        DarkThemeColors.GlassBackground,
-                        DarkThemeColors.GlassHighlight
-                    )
-                )
-            )
-            .border(
-                width = 0.5.dp,
-                color = DarkThemeColors.GlassBorder,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(14.dp)
+            .animateContentSize(animationSpec = tween(300)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            DarkThemeColors.GlassBackground,
+                            DarkThemeColors.GlassHighlight
+                        )
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(14.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CategoryBadge(category = pattern.category)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(riskColor)
-                        )
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = pattern.riskRating,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = riskColor,
-                            fontWeight = FontWeight.Medium
+                            text = formatDate(entry.date),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        if (entry.notes != null) {
+                            Text(
+                                text = entry.notes,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = if (showDetails) Int.MAX_VALUE else 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ResultBadge(result = entry.result)
+                            Text(
+                                text = "%.2f".format(entry.amount),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (entry.result == "WIN") DarkThemeColors.ChartGreen
+                                else DarkThemeColors.ChartRed
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = pattern.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkThemeColors.OnSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    text = pattern.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = DarkThemeColors.OnSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            IconButton(onClick = onFavoriteToggle) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Remove favorite" else "Add favorite",
-                    tint = if (isFavorite) DarkThemeColors.ChartRed else DarkThemeColors.OnSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
+                AnimatedVisibility(
+                    visible = showDetails,
+                    enter = fadeIn(animationSpec = tween(200)) + slideInVertically(animationSpec = tween(200)) { it / 2 },
+                    exit = fadeOut(animationSpec = tween(200))
+                ) {
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        if (entry.patternName != null) {
+                            Text(
+                                text = "Pattern: ${entry.patternName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            text = "Session: ${entry.sessionId ?: "N/A"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = entry.date.toRelativeTime(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CategoryBadge(category: String) {
-    val badgeColor = when {
-        category.contains("Trend", ignoreCase = true) -> DarkThemeColors.ChartBlue
-        category.contains("Reversal", ignoreCase = true) -> DarkThemeColors.ChartPurple
-        category.contains("Repeating", ignoreCase = true) -> DarkThemeColors.ChartGreen
-        category.contains("Frequency", ignoreCase = true) -> DarkThemeColors.ChartOrange
-        category.contains("Timing", ignoreCase = true) -> DarkThemeColors.ChartCyan
-        category.contains("Probability", ignoreCase = true) -> DarkThemeColors.ChartPink
-        category.contains("Momentum", ignoreCase = true) -> DarkThemeColors.ChartYellow
-        category.contains("Statistical", ignoreCase = true) -> DarkThemeColors.ChartRed
-        else -> DarkThemeColors.OnSurfaceVariant
-    }
-
+private fun ResultBadge(result: String) {
+    val isWin = result == "WIN"
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(badgeColor.copy(alpha = 0.15f))
+            .background(
+                if (isWin) DarkThemeColors.ChartGreen.copy(alpha = 0.15f)
+                else DarkThemeColors.ChartRed.copy(alpha = 0.15f)
+            )
             .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
-            text = category.split(" ").first(),
+            text = result,
             style = MaterialTheme.typography.labelSmall,
-            color = badgeColor,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold,
+            color = if (isWin) DarkThemeColors.ChartGreen else DarkThemeColors.ChartRed
         )
     }
 }
 
 @Composable
-private fun PatternLibSkeleton() {
-    Column(
+private fun EmptyState() {
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
     ) {
-        SkeletonCard(height = 48.dp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            repeat(4) {
-                SkeletonCard(height = 32.dp, modifier = Modifier.width(80.dp))
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        repeat(6) { idx ->
-            SkeletonCard(
-                height = if (idx % 2 == 0) 160.dp else 120.dp,
-                modifier = Modifier.fillMaxWidth()
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "No Entries Found",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Start trading to see your history here.\nUse the filters above to narrow results.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
+@Composable
+private fun HistorySkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        repeat(6) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(DarkThemeColors.GlassBackground)
+            )
+        }
+    }
+}
+
+private fun formatDate(date: Date): String {
+    val now = System.currentTimeMillis()
+    val diff = now - date.time
+    val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.US)
+    return when {
+        diff < 24 * 60 * 60 * 1000L -> "Today, ${SimpleDateFormat("HH:mm", Locale.US).format(date)}"
+        diff < 2 * 24 * 60 * 60 * 1000L -> "Yesterday, ${SimpleDateFormat("HH:mm", Locale.US).format(date)}"
+        else -> sdf.format(date)
+    }
+}
+
+private fun Date.toRelativeTime(): String {
+    val now = System.currentTimeMillis()
+    val diff = now - this.time
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+    return when {
+        seconds < 60 -> "Just now"
+        minutes < 60 -> "${minutes}m ago"
+        hours < 24 -> "${hours}h ago"
+        days < 7 -> "${days}d ago"
+        days < 30 -> "${days / 7}w ago"
+        days < 365 -> "${days / 30}mo ago"
+        else -> "${days / 365}y ago"
+    }
+}
