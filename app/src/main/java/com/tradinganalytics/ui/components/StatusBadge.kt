@@ -67,6 +67,7 @@ private fun badgePadding(size: BadgeSize): Dp = when (size) {
     BadgeSize.LARGE -> 8.dp
 }
 
+@Composable
 private fun badgeFontSize(size: BadgeSize) = when (size) {
     BadgeSize.SMALL -> MaterialTheme.typography.labelSmall
     BadgeSize.MEDIUM -> MaterialTheme.typography.labelMedium
