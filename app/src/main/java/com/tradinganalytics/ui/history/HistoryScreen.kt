@@ -227,11 +227,12 @@ private fun FilterBar(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
-                border = if (currentFilter == filter) {
-                    BorderStroke(1.dp, DarkThemeColors.Primary.copy(alpha = 0.5f))
-                } else {
-                    BorderStroke(1.dp, DarkThemeColors.GlassBorder)
-                }
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = currentFilter == filter,
+                    borderColor = DarkThemeColors.GlassBorder,
+                    selectedBorderColor = DarkThemeColors.Primary.copy(alpha = 0.5f)
+                )
             )
         }
     }
