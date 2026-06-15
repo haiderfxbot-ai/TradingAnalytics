@@ -187,7 +187,7 @@ class ReportsViewModel @Inject constructor(
                             "amount" to entry.amount,
                             "result" to entry.result,
                             "notes" to entry.notes,
-                            "timestamp" to entry.timestamp.time
+                            "timestamp" to entry.date.time
                         )
                     }
                 )
@@ -215,7 +215,7 @@ class ReportsViewModel @Inject constructor(
                 val state = _uiState.value
                 val header = "ID,Amount,Result,Notes,Timestamp"
                 val rows = state.entries.joinToString("\n") { entry ->
-                    "${entry.id},${entry.amount},${entry.result},\"${entry.notes}\",${entry.timestamp.time}"
+                    "${entry.id},${entry.amount},${entry.result},\"${entry.notes}\",${entry.date.time}"
                 }
                 val csv = "$header\n$rows"
 
