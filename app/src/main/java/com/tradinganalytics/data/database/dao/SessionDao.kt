@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SessionDao {
+    @Query("SELECT * FROM sessions")
+    fun getAll(): Flow<List<SessionEntity>>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: SessionEntity): Long
