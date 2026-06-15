@@ -329,6 +329,7 @@ private fun AutoBackupSettings(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScheduleSelector(selected: String, onSelect: (String) -> Unit) {
     val options = listOf("daily" to "Daily", "weekly" to "Weekly", "monthly" to "Monthly")
