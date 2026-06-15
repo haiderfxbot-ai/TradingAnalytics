@@ -346,7 +346,7 @@ class BackupManager @Inject constructor(
 
     private fun convertJsonToCsv(json: JSONObject): String {
         val sb = StringBuilder()
-        val keys = json.keySet()
+        val keys = json.keys().asSequence().toList()
         sb.appendLine(keys.joinToString(","))
         sb.appendLine(keys.joinToString(",") { key ->
             json.opt(key)?.toString()?.replace("\"", "\"\"")?.let { "\"$it\"" } ?: ""
@@ -358,7 +358,7 @@ class BackupManager @Inject constructor(
                 sb.appendLine()
                 sb.appendLine("--- $section ---")
                 val first = array.getJSONObject(0)
-                val headers = first.keySet().toList()
+                val headers = first.keys().asSequence().toList()
                 sb.appendLine(headers.joinToString(",") { "\"$it\"" })
                 for (i in 0 until array.length()) {
                     val row = array.getJSONObject(i)
