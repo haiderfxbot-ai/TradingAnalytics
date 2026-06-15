@@ -68,11 +68,11 @@ class LoginViewModel @Inject constructor(
         val password = state.password
 
         if (username.isBlank()) {
-            _uiState.update { it.copy(error = LoginError.InvalidUsername.name) }
+            _uiState.update { it.copy(error = LoginError.InvalidUsername.toString()) }
             return
         }
         if (password.isBlank()) {
-            _uiState.update { it.copy(error = LoginError.InvalidPassword.name) }
+            _uiState.update { it.copy(error = LoginError.InvalidPassword.toString()) }
             return
         }
 
@@ -94,10 +94,10 @@ class LoginViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     val errorMessage = when (error.message) {
-                        "User not found" -> LoginError.InvalidUsername.name
-                        "Invalid password" -> LoginError.InvalidPassword.name
-                        "Account is disabled" -> LoginError.AccountDisabled.name
-                        "Account is locked" -> LoginError.AccountLocked.name
+                        "User not found" -> LoginError.InvalidUsername.toString()
+                        "Invalid password" -> LoginError.InvalidPassword.toString()
+                        "Account is disabled" -> LoginError.AccountDisabled.toString()
+                        "Account is locked" -> LoginError.AccountLocked.toString()
                         else -> error.message ?: "An unexpected error occurred"
                     }
                     _uiState.update {
