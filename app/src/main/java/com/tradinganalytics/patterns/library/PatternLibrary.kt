@@ -780,10 +780,10 @@ object PatternLibrary {
                 val formattedId = indexedName.value.second
                 val patternId = "PAT_$formattedId"
                 val seqNumber = range.first + withIdx
-                val descIndex = index % descriptions.size
-                val formulaIndex = index % formulas.size
-                val riskIndex = index % riskRatings.size
-                val conditionCount = 2 + (index % 4)
+                val descIndex = withIdx % descriptions.size
+                val formulaIndex = withIdx % formulas.size
+                val riskIndex = withIdx % riskRatings.size
+                val conditionCount = 2 + (withIdx % 4)
                 val requiredConditions = (1..conditionCount).map { i ->
                     when (category) {
                         "Trend Patterns" -> listOf("TREND_DIRECTION_CONFIRMED", "VOLUME_ABOVE_THRESHOLD", "MOMENTUM_ALIGNED", "SUPPORT_RESISTANCE_TESTED", "BREAKOUT_CONFIRMED")[i % 5]

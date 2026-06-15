@@ -25,9 +25,9 @@ class PatternRepository @Inject constructor(
         confidence: Double
     ): Result<PatternEntity> {
         return try {
-            val patterns = patternDao.getAll().value ?: return Result.failure(
-                IllegalStateException("Patterns not loaded")
-            )
+            val patterns = patternDao.getAll().first().ifEmpty {
+                return Result.failure(IllegalStateException("Patterns not loaded"))
+            }
             val pattern = patterns.find { it.patternId == patternId }
                 ?: return Result.failure(IllegalArgumentException("Pattern not found"))
 

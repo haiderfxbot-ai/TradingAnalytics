@@ -34,6 +34,9 @@ class PatternLibViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PatternLibUiState())
     val uiState: StateFlow<PatternLibUiState> = _uiState.asStateFlow()
 
+    private val _detailState = MutableStateFlow(PatternDetailUiState())
+    val detailState: StateFlow<PatternDetailUiState> = _detailState.asStateFlow()
+
     private val allPatterns: List<PatternDefinition> = PatternLibrary.allPatterns
 
     init {
@@ -74,8 +77,12 @@ class PatternLibViewModel @Inject constructor(
             is PatternLibEvent.OnRiskLevelSelect -> onRiskLevelSelect(event.riskLevel)
             is PatternLibEvent.ToggleViewMode -> toggleViewMode()
             is PatternLibEvent.ToggleFavorite -> toggleFavorite(event.patternId)
+            is PatternLibEvent.OnPatternClick -> loadPatternDetail(event.patternId)
             is PatternLibEvent.Refresh -> refresh()
             is PatternLibEvent.DismissError -> _uiState.update { it.copy(error = null) }
+            is PatternLibEvent.NoteChange -> _detailState.update { it.copy(noteInput = event.query) }
+            is PatternLibEvent.AddNote -> addNote()
+            is PatternLibEvent.AnalyzePattern -> analyzePattern(event.patternId)
         }
     }
 
@@ -152,6 +159,55 @@ class PatternLibViewModel @Inject constructor(
             if (current.contains(patternId)) current.remove(patternId) else current.add(patternId)
             appPreferences.setFavoritePatternIds(current.toList())
             _uiState.update { it.copy(favoriteIds = current) }
+        }
+    }
+
+    private fun loadPatternDetail(patternId: String) {
+        viewModelScope.launch {
+            _detailState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val pattern = allPatterns.find { it.patternId == patternId }
+                val matches = patternMatchDao.getByPatternId(patternId).first()
+                val favoriteIds = appPreferences.getFavoritePatternIds().first().toSet()
+                _detailState.update {
+                    it.copy(
+                        isLoading = false,
+                        pattern = pattern,
+                        isFavorite = favoriteIds.contains(patternId),
+                        matchHistory = matches,
+                        notes = emptyList()
+                    )
+                }
+            } catch (e: Exception) {
+                _detailState.update {
+                    it.copy(isLoading = false, error = e.message ?: "Failed to load pattern")
+                }
+            }
+        }
+    }
+
+    private fun addNote() {
+        viewModelScope.launch {
+            val note = _detailState.value.noteInput
+            if (note.isBlank()) return@launch
+            val currentNotes = _detailState.value.notes.toMutableList()
+            currentNotes.add(note)
+            _detailState.update { it.copy(notes = currentNotes, noteInput = "") }
+        }
+    }
+
+    private fun analyzePattern(patternId: String) {
+        viewModelScope.launch {
+            _detailState.update { it.copy(isAnalyzing = true) }
+            try {
+                val pattern = allPatterns.find { it.patternId == patternId }
+                val result = pattern?.let { "Analysis complete for: ${it.name}" } ?: "Pattern not found"
+                _detailState.update { it.copy(isAnalyzing = false, analysisResult = result) }
+            } catch (e: Exception) {
+                _detailState.update {
+                    it.copy(isAnalyzing = false, analysisResult = "Analysis failed: ${e.message}")
+                }
+            }
         }
     }
 

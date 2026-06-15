@@ -54,4 +54,7 @@ sealed class PatternLibEvent {
     data class OnPatternClick(val patternId: String) : PatternLibEvent()
     data object Refresh : PatternLibEvent()
     data object DismissError : PatternLibEvent()
+    data class NoteChange(val query: String) : PatternLibEvent()
+    data object AddNote : PatternLibEvent()
+    data class AnalyzePattern(val patternId: String) : PatternLibEvent()
 }

@@ -31,8 +31,7 @@ class EntryRepository @Inject constructor(
 
     suspend fun getStats(userId: Long): Result<EntryStats> {
         return try {
-            val entries = entryDao.getAllByUser(userId)
-            val list = entries.value ?: emptyList()
+            val list = entryDao.getAllByUser(userId).first()
             val total = list.size
             val wins = list.count { it.result == "WIN" }
             val losses = list.count { it.result == "LOSS" }

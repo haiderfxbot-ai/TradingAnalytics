@@ -114,10 +114,10 @@ fun NavGraph(
             val state by viewModel.uiState.collectAsState()
             HistoryScreen(
                 uiState = state,
-                onFilterChange = { viewModel.onEvent(it) },
-                onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+                onFilterChange = { viewModel.setFilter(it) },
+                onSearchQueryChange = { viewModel.setSearchQuery(it) },
                 onRefresh = { viewModel.refresh() },
-                onLoadMore = { viewModel.loadMore() }
+                onLoadMore = { viewModel.loadNextPage() }
             )
         }
         composable(Screen.Reports.route) {
