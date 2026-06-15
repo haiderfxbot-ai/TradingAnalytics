@@ -268,7 +268,7 @@ private fun StatCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(gradient.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                .background(gradient, RoundedCornerShape(16.dp), alpha = 0.15f)
                 .padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -329,7 +329,7 @@ private fun ManagementCard(
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .background(gradient.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                        .background(gradient, RoundedCornerShape(12.dp), alpha = 0.2f),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
