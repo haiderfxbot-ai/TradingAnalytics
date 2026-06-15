@@ -1,9 +1,6 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.tradinganalytics.ui.reports
-
-@file:OptIn(ExperimentalMaterial3Api::class)
-
-
-
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
