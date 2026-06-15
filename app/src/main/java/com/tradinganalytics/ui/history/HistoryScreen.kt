@@ -227,6 +227,7 @@ private fun FilterBar(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
+            )
         }
     }
 }
@@ -384,7 +385,7 @@ private fun HistorySkeleton() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         repeat(6) {
