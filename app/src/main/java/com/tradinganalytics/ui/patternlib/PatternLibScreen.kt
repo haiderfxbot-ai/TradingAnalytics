@@ -276,6 +276,8 @@ private fun FilterChipsRow(
                     selectedContainerColor = DarkThemeColors.Primary.copy(alpha = 0.2f),
                     selectedLabelColor = DarkThemeColors.Primary
                 ),
+                shape = RoundedCornerShape(12.dp)
+            )
         }
     }
 }
@@ -512,7 +514,7 @@ private fun PatternLibSkeleton() {
         Spacer(modifier = Modifier.height(4.dp))
         repeat(6) { idx ->
             SkeletonCard(
-                height = if (idx % 2 == 0) 160.dp else 120.dp,
+                height = if (idx % 2 == 0) 160.dp else 120.dp
                 modifier = Modifier.fillMaxWidth()
             )
         }
